@@ -1,0 +1,6 @@
+﻿public interface ILogContext
+{
+    void ClearLog();
+
+    void QueueLog(string msg);
+}
