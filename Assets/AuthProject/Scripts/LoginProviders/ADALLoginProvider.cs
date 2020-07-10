@@ -159,7 +159,9 @@ public class ADALLoginProvider : BaseLoginProvider
         Logger.Log($"AdalException Error Code: {e.ErrorCode.ToString()}");
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async override Task SignOutAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         Logger.Clear();
         authenticationContext.TokenCache.Clear();

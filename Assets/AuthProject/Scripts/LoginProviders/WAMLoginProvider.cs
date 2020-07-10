@@ -33,7 +33,9 @@ public class WAMLoginProvider : BaseLoginProvider
 
     public override string ProviderName => $"WebAuthenticationCoreManager";
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async override Task<IToken> LoginAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         Logger.Log("Loggin in with WebAuthenticationCoreManager...");
 
@@ -224,7 +226,9 @@ public class WAMLoginProvider : BaseLoginProvider
         return new AADToken(AADToken);
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public override async Task SignOutAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         Logger.Clear();
         string userId = Store.GetUserId(UserIdKey);

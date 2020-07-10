@@ -31,7 +31,9 @@ public class WAPLoginProvider : BaseLoginProvider
         return null;
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async Task ChooseFromAccountsAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
 #if ENABLE_WINMD_SUPPORT
         //await AccountsSettingsPane.ShowAddAccountAsync();
@@ -39,7 +41,9 @@ public class WAPLoginProvider : BaseLoginProvider
 #endif
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async override Task SignOutAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         Username = string.Empty;
         AADToken = string.Empty;
