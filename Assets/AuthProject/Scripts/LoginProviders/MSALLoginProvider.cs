@@ -10,6 +10,8 @@ public class MSALLoginProvider : BaseLoginProvider
         TenantId = tenantId;
     }
 
+    public bool UseDeviceCodeFlow { get; set; } = false;
+
     public override string UserIdKey
     {
         get
@@ -26,7 +28,7 @@ public class MSALLoginProvider : BaseLoginProvider
 
     public override async Task<IToken> LoginAsync()
     {
-        Logger.Log("Loggin in with MSAL...");
+        Logger.Log("Logging in with MSAL...");
         string url = $"https://login.microsoftonline.com/{TenantId}";
 
 #if UNITY_EDITOR
@@ -83,7 +85,7 @@ public class MSALLoginProvider : BaseLoginProvider
             {
                 try
                 {
-                    if (platformSupportsUI)
+                    if (platformSupportsUI && !UseDeviceCodeFlow)
                     {
 #if LATEST_MSAL
                         authResult = await app.AcquireTokenInteractive(scopes).ExecuteAsync();

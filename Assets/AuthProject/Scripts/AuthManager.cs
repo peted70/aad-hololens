@@ -1,4 +1,5 @@
-﻿using Microsoft.MixedReality.Toolkit.Utilities;
+﻿using Microsoft.MixedReality.Toolkit.UI;
+using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +14,17 @@ using UnityEngine.UI;
 [RequireComponent(typeof(UnityMainThreadDispatcher))]
 public class AuthManager : MonoBehaviour, ILogContext
 {
-    public string ClientId = "8f99f5cf-98a0-4029-bfd8-1aea31c2117d";
-    public string TenantId = "70d30580-e80d-45a0-b37b-a369cdbe1185";
-    public string Authority = "organizations";
-
     public TextMeshProUGUI DebugText;
     public RawImage userImage;
     public GameObject ScrollView;
 
     public TextMeshProUGUI StatusText;
     public TextMeshProUGUI UserText;
-    public string ArrAccountId;
+    
+    public Interactable IrisCheckBox;
+    public Interactable DeviceCodeFlowCheckBox;
+
+    private AccountSettings Settings = new AccountSettings();
 
     public IUserStore UserStore { get; } = new UnityUserStore();
     public IAADLogger Logger { get; set; }
@@ -32,7 +33,11 @@ public class AuthManager : MonoBehaviour, ILogContext
 
     public class AccountSettings
     {
-        public string Id;
+        public string ARRAccountId;
+        public string ClientId;
+        public string TenantId;
+        public string Authority;
+        public string ARRRegion;
     }
 
     void Start()
@@ -40,19 +45,18 @@ public class AuthManager : MonoBehaviour, ILogContext
         Dispatcher = GetComponent<UnityMainThreadDispatcher>();
         Logger = new UnityAADLogger(this);
 
-        LoginProviders.RegisterProviders(Logger, UserStore, ClientId, Authority, TenantId);
-
-        TextAsset settings = (TextAsset)AssetDatabase.LoadAssetAtPath("Assets/arr-settings.json",
+        TextAsset settings = (TextAsset)AssetDatabase.LoadAssetAtPath("Assets/app-settings.json",
                                                                               typeof(TextAsset));
         if (settings)
         {
-            AccountSettings set = (AccountSettings)JsonUtility.FromJson(settings.text, typeof(AccountSettings));
-            ArrAccountId = set.Id;
+            Settings = (AccountSettings)JsonUtility.FromJson(settings.text, typeof(AccountSettings));
         }
         else
         {
-            Logger.Log("Warning, no arr settings file - won't be able to test token!");
+            Logger.Log("Error: no app settings file - please create an app-settings.json file in your assets folder!");
         }
+
+        LoginProviders.RegisterProviders(Logger, UserStore, Settings.ClientId, Settings.Authority, Settings.TenantId);
     }
 
     public void SetCurrentLoginProvider(string id)
@@ -83,13 +87,25 @@ public class AuthManager : MonoBehaviour, ILogContext
     public void HandleTest()
     {
         Log("Testing token...");
-        TestTokenAsync(CurrentLoginProvider.AADToken, ArrAccountId).ContinueWith(t =>
+        TestTokenAsync(CurrentLoginProvider.AADToken, Settings.ARRAccountId).ContinueWith(t =>
         {
             if (t.Exception != null)
             {
                 Log(t.Exception.Message);
             }
         });
+    }
+
+    public void HandleIrisLoginChange()
+    {
+        var onoff = IrisCheckBox.IsToggled;
+        ((WAMLoginProvider)CurrentLoginProvider).BiometricsRequired = onoff;
+    }
+
+    public void HandleDeviceCodeChange()
+    {
+        var onoff = DeviceCodeFlowCheckBox.IsToggled;
+        ((MSALLoginProvider)CurrentLoginProvider).UseDeviceCodeFlow = onoff;
     }
 
     public class StsResponse
@@ -128,15 +144,15 @@ public class AuthManager : MonoBehaviour, ILogContext
         }
         else
         {
+            Log("Successfully retrieved access token from Mixed Reality STS");
             Log(tkn.AccessToken);
         }
 
         http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tkn.AccessToken);
 
-        var resp2 = await http.GetAsync($"https://remoterendering.eastus.mixedreality.azure.com/v1/accounts/{acctId}/sessions");
-
+        var resp2 = await http.GetAsync($"https://remoterendering.{Settings.ARRRegion}.mixedreality.azure.com/v1/accounts/{acctId}/sessions");
         resp2.EnsureSuccessStatusCode();
-        Log("SUCCEEDED");
+        Log("Successfully made a call to the Azure Remote Rendering Service REST API");
     }
 
     void ProcessResult(Task t)

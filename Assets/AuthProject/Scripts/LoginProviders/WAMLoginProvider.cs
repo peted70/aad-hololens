@@ -16,10 +16,10 @@ public class WAMLoginProvider : BaseLoginProvider
     public WAMLoginProvider(IAADLogger logger, IUserStore userStore, string clientId, string authority, bool biometricsRequired = true) : 
         base(logger, userStore, clientId, authority)
     {
-        _biometricsRequired = biometricsRequired;
+        BiometricsRequired = biometricsRequired;
     }
 
-    private bool _biometricsRequired = false;
+    public bool BiometricsRequired { get; set; } = false;
 
     public override string UserIdKey
     {
@@ -40,7 +40,7 @@ public class WAMLoginProvider : BaseLoginProvider
         string accessToken = string.Empty;
 #if ENABLE_WINMD_SUPPORT
 
-        if (_biometricsRequired)
+        if (BiometricsRequired)
         {
             if (await Windows.Security.Credentials.UI.UserConsentVerifier.CheckAvailabilityAsync() == Windows.Security.Credentials.UI.UserConsentVerifierAvailability.Available)
             {
