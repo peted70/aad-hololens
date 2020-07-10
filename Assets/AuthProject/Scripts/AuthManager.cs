@@ -23,6 +23,7 @@ public class AuthManager : MonoBehaviour, ILogContext
     
     public Interactable IrisCheckBox;
     public Interactable DeviceCodeFlowCheckBox;
+    public ObjectSwitcher TestStatus;
 
     private AccountSettings Settings = new AccountSettings();
 
@@ -87,11 +88,24 @@ public class AuthManager : MonoBehaviour, ILogContext
     public void HandleTest()
     {
         Log("Testing token...");
+        TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.Progress);
         TestTokenAsync(CurrentLoginProvider.AADToken, Settings.ARRAccountId).ContinueWith(t =>
         {
             if (t.Exception != null)
             {
+                Dispatcher.Enqueue(() =>
+                {
+                    TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.Fail);
+                });
+
                 Log(t.Exception.Message);
+            }
+            else
+            {
+                Dispatcher.Enqueue(() =>
+                {
+                    TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.Success);
+                });
             }
         });
     }
@@ -117,13 +131,15 @@ public class AuthManager : MonoBehaviour, ILogContext
     {
         if (string.IsNullOrEmpty(token))
         {
-            Log("No valid token provided - can't test");
-            return;
+            string msg = "No valid token provided - can't test";
+            Log(msg);
+            throw new ArgumentException(msg, "token");
         }
         if (string.IsNullOrEmpty(arrAcountId))
         {
-            Log("No Azure Remote Rendering Acount Id provided - can't test");
-            return;
+            string msg = "No Azure Remote Rendering Acount Id provided - can't test";
+            Log(msg);
+            throw new ArgumentException(msg, "arrAcountId");
         }
 
         var http = new HttpClient();
@@ -176,6 +192,8 @@ public class AuthManager : MonoBehaviour, ILogContext
 
     private void UpdateUI()
     {
+        TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.None);
+
         // Synchronise the UI..
         DebugText.text = CurrentLoginProvider.LogContent;
         UserText.text = CurrentLoginProvider.Username;
