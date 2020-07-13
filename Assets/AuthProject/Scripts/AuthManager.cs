@@ -157,28 +157,32 @@ public class AuthManager : MonoBehaviour, ILogContext
         var acctId = arrAcountId;
         http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-        var resp = await http.GetAsync($"https://sts.mixedreality.azure.com/accounts/{acctId}/token");
+        var resp = await http.GetAsync($"https://sts.mixedreality.azure.com/accounts/{acctId}/token")
+            .ConfigureAwait(false);
+
         var content = await resp.Content.ReadAsStringAsync();
-        Log(content);
+        Logger.Log(content);
         resp.EnsureSuccessStatusCode();
 
         var tkn = (StsResponse)JsonUtility.FromJson(content, typeof(StsResponse));
 
         if (tkn == null)
         {
-            Log("Token object is null");
+            Logger.Log("Token object is null");
         }
         else
         {
-            Log("Successfully retrieved access token from Mixed Reality STS");
-            Log(tkn.AccessToken);
+            Logger.Log("Successfully retrieved access token from Mixed Reality STS");
+            Logger.Log(tkn.AccessToken);
         }
 
         http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tkn.AccessToken);
 
-        var resp2 = await http.GetAsync($"https://remoterendering.{Settings.ARRRegion}.mixedreality.azure.com/v1/accounts/{acctId}/sessions");
+        var resp2 = await http.GetAsync($"https://remoterendering.{Settings.ARRRegion}.mixedreality.azure.com/v1/accounts/{acctId}/sessions")
+            .ConfigureAwait(false);
+
         resp2.EnsureSuccessStatusCode();
-        Log("Successfully made a call to the Azure Remote Rendering Service REST API");
+        Logger.Log("Successfully made a call to the Azure Remote Rendering Service REST API");
     }
 
     void ProcessResult(Task t)
@@ -191,8 +195,6 @@ public class AuthManager : MonoBehaviour, ILogContext
             }
             else
             {
-                Log("Completed successfully.");
-
                 // Sync some values to the UI
                 //
                 UpdateUI();
