@@ -122,7 +122,9 @@ PlayerSettings:
     16:9: 1
     Others: 1
   bundleVersion: 1.0
-  preloadedAssets: []
+  preloadedAssets:
+  - {fileID: -8718189878798776877, guid: c873003beea5de34cb13dc766fe821ad, type: 2}
+  - {fileID: 4618865297237126824, guid: fabc55dfa8fdfe04aa9dbe897ee18a3e, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -529,11 +531,11 @@ PlayerSettings:
   m_MobileRenderingPath: 1
   metroPackageName: aad-hololens
   metroPackageVersion: 
-  metroCertificatePath: 
+  metroCertificatePath: Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: 
-  metroCertificateIssuer: 
-  metroCertificateNotAfter: 0000000000000000
+  metroCertificateSubject: DefaultCompany
+  metroCertificateIssuer: DefaultCompany
+  metroCertificateNotAfter: 808abc085b6fd701
   metroApplicationDescription: aad-hololens
   wsaImages: {}
   metroTileShortName: 
