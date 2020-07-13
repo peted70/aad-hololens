@@ -57,6 +57,8 @@ public class AuthManager : MonoBehaviour, ILogContext
     {
         Dispatcher = GetComponent<UnityMainThreadDispatcher>();
         Logger = new UnityAADLogger(this);
+        
+        _scrollRect = ScrollView.GetComponent<ScrollRect>();
 
         if (AppSettings)
         {
@@ -257,14 +259,15 @@ public class AuthManager : MonoBehaviour, ILogContext
         return accessToken;
     }
 
+    private ScrollRect _scrollRect;
+
     void Log(string text)
     {
         DebugText.text += "\n" + text;
         CurrentLoginProvider.Log("\n" + text);
         Debug.Log(text);
         Canvas.ForceUpdateCanvases();
-        var scrollRect = ScrollView.GetComponent<ScrollRect>();
-        scrollRect.verticalNormalizedPosition = 0.0f;
+        _scrollRect.verticalNormalizedPosition = 0.0f;
     }
 
     public void ClearLog()

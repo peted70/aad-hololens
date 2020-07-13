@@ -121,7 +121,7 @@ public class ADALLoginProvider : BaseLoginProvider
             // Cache the user identifier...
             Store.SaveUser(UserIdKey, authenticationResult.UserInfo.UniqueId);
 
-            accessToken = authenticationResult.AccessToken;
+            accessToken = AADToken = authenticationResult.AccessToken;
             Username = authenticationResult.UserInfo.DisplayableId;
             Logger.Log($"Access Token: {accessToken}");
         }

@@ -1,4 +1,4 @@
-# AAD Login on HoloLens
+# AAD Login on HoloLens 2
 
 I have previously written a little about the topic of retrieving Azure Active Directory (AAD) OAuth2 identity and access tokens on a HoloLens device. I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those <here> and <here>. There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here https://oauth.net/2/grant-types/authorization-code/ if you want to understand the details of the flow.
 
@@ -129,5 +129,56 @@ link to the link.xml
 
 ### Windows Authentication Broker
 
+## Settings
+
+The settings for auth are stored in a json file in the Assets folder
+
+![settings](./images/settings.png)
+
+So edit this file with your own settings and rename it to app-settings.json and the sample code will pick it up.
+
 ## Configure the Backend
 
+It is worth scanning the docs [here](https://docs.microsoft.com/en-us/hololens/hololens-identity) and although we can see from those docs that you can login to your HL2 with a local account or an MSA things get more interesting when we consider Azure Active Directory because at the time of writing it is possible to have 64 AAD user accounts with the following options:
+
+- Azure web credential provider
+- Azure Authenticator App
+- Biometric (Iris) – HoloLens 2 only
+- PIN – Optional for HoloLens (1st gen)required for HoloLens 2
+- Password
+
+Of most interest to me being iris login with multiple accounts.
+
+> Just getting an OAuth token and displaying it isn't too interesting as really the aim in a real app would most-likely be to access a custom API or some other Azure resource. So, to show that things are working as expected we'll take the AAD token and exchange it for and access token for Azure Mixed Reality services. We'll use that access token to make a call to the Azure Remote Rendering Service to enumerate rendering sessions just to check that the call succeeds. This access token could be used to access any MR services, e.g. Azure Spatial Anchors, that the logged in user has access to. We'll look into how to configure the application and also provide access to a particular user next.
+
+### Register the App
+
+I've covered this a few times on my blog so will just include the basic steps here:
+
+In the [Azure portal](https://portal.azure.com) if you don't have an AAD set up there is a quickstart [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant) to help get you up and running. Once created you can register a new application:
+
+![app reg](./images/app-reg.png)
+
+Select 'New Registration' and just name it without worrying about the other settings. You will be shown a page which has settings that you will need for the app-settings.json file we mentioned above (maybe fill those now). The other important thing is to register a redirect uri for your app.
+
+### Redirect URI
+
+The easiest way to discover the redirect URI for the sample app is to run it and the app will write the uri to th unity log.
+
+> Note, that the running instance of your app needs to be terminated before the log is flushed. You can terminate the app and download the unity log using the [HoloLens device portal](https://docs.microsoft.com/en-us/windows/mixed-reality/using-the-windows-device-portal).
+
+This code:
+
+```C#
+string URI = string.Format("ms-appx-web://Microsoft.AAD.BrokerPlugIn/{0}", WebAuthenticationBroker.GetCurrentApplicationCallbackUri().Host.ToUpper());
+Logger.Log("Redirect URI: " + URI);
+```
+
+will log out a redirect URI for a UWP app.
+
+> If I have this right the ADAL implementation required a slightly different format so I registered both:
+
+```C#
+string URI = string.Format("ms-app://{0}", WebAuthenticationBroker.GetCurrentApplicationCallbackUri().Host.ToUpper());
+Logger.Log("Redirect URI: " + URI);
+```
