@@ -7,16 +7,28 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(UnityMainThreadDispatcher))]
 public class AuthManager : MonoBehaviour, ILogContext
 {
+    [Tooltip("Text UI output for the debug console")]
     public TextMeshProUGUI DebugText;
-    public RawImage userImage;
+
+    [Tooltip("Image which will be populated with the user's image if one is available")]
+    public RawImage UserImage;
+
+    [Tooltip("Scrollview for the debug console")]
     public GameObject ScrollView;
+
+    [Tooltip(@"Application Settings json file e.g. {" + 
+            @"""ARRAccountId"": ""xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""," +
+            @"""ARRRegion"": ""eastus""," +
+            @"""ClientId"": ""xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""," +
+            @"""TenantId"": ""xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""," +
+            @"""Authority"": ""organizations""}")]
+    public TextAsset AppSettings;
 
     public TextMeshProUGUI StatusText;
     public TextMeshProUGUI UserText;
@@ -46,11 +58,9 @@ public class AuthManager : MonoBehaviour, ILogContext
         Dispatcher = GetComponent<UnityMainThreadDispatcher>();
         Logger = new UnityAADLogger(this);
 
-        TextAsset settings = (TextAsset)AssetDatabase.LoadAssetAtPath("Assets/app-settings.json",
-                                                                              typeof(TextAsset));
-        if (settings)
+        if (AppSettings)
         {
-            Settings = (AccountSettings)JsonUtility.FromJson(settings.text, typeof(AccountSettings));
+            Settings = (AccountSettings)JsonUtility.FromJson(AppSettings.text, typeof(AccountSettings));
         }
         else
         {
@@ -204,7 +214,7 @@ public class AuthManager : MonoBehaviour, ILogContext
             var tex = new Texture2D(64, 64, TextureFormat.BGRA32, false);
             tex.LoadImage(CurrentLoginProvider.UserPicture);
             tex.Apply();
-            userImage.texture = tex;
+            UserImage.texture = tex;
         }
     }
 
