@@ -2,6 +2,12 @@
 
 ![Eye](./images/eye.png)
 
+Here's a short video of the sample app that goes with this post:
+
+<figure class="video_container">
+<iframe src="https://www.youtube.com/embed/7yz7hTNMxBY"  frameborder="0" allowfullscreen="true"></iframe>
+</figure>
+
 One of the coolest aspects of HoloLens2 is the iris login as it removes the need for typing on a virtual keyboard. So a cool feature which avoids the need for the coolest feature! Although hand-tracked typing is arguably the coolest feature it can become tiring when needed over and over...
 
 So set up your HoloLens2 device using AAD credentials and then configure the device to use Iris login as shown below:
@@ -36,7 +42,7 @@ So, it seems pretty simple so far so why the need for this post? These are the c
 
 I won't focus on some of the other topics like IL2CPP stripping code from .NET libraries as I have covered that in a previous post [IL2CPP + HoloLens](http://peted.azurewebsites.net/il2cpp-hololens/), so you may want to be on the lookout for those kind of issues. I will leave you with a code repository that you can borrow code from to set up the particular scenario that you are interested in. The code and the rest of this post will be concerned with the different ways that access and id tokens can be retrieved, back-end configuration and an illustration of how you might get an AAD token for some of the new Mixed Reality services such as Azure Spatial Anchors and Azure Remote Rendering.
 
-## Sample Walkthrough
+##  Sample Walkthrough
 
 > This just describes some aspects of how I created the demo application. If this isn't of interest just skip these sections as I will make my way towards the various frameworks and APIs used.
 
@@ -256,8 +262,6 @@ and choose **mixedreality.signin** permission.
 And finally I granted access to my tenant:
 
 ![Grant Admin](./images/grant-admin.png)
-
-<Iris Login video>
 
 ## Diagnosing Token Issues
 
