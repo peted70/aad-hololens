@@ -1,6 +1,24 @@
 # AAD Login on HoloLens 2
 
-I have previously written a little about the topic of retrieving Azure Active Directory (AAD) OAuth2 identity and access tokens on a HoloLens device. I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens/) and [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens-device-code-flow/). There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here https://oauth.net/2/grant-types/authorization-code/ if you want to understand the details of the flow.
+![Eye](./images/eye.png)
+
+One of the coolest aspects of HoloLens2 is the iris login as it removes the need for typing on a virtual keyboard. So a cool feature which avoids the need for the coolest feature! Although hand-tracked typing is arguably the coolest feature it can become tiring when needed over and over...
+
+So set up your HoloLens2 device using AAD credentials and then configure the device to use Iris login as shown below:
+
+![HL2 Iris Scan](./images/hololens-iris-settings.png)
+
+An app to configure will run and guide you to watch a moving animation.
+
+![HL2 Iris Scan Complete](./images/scan-complete.png)
+
+> You can now add up to 64 other users logging in via AAD and have the device be shared by signing in an out. We'll see how this can be extended into an app later in the article.
+
+I have previously written a little about the topic of retrieving Azure Active Directory (AAD) OAuth2 identity and access tokens on a HoloLens device.
+
+> If this topic is new to you I would suggest reading through the identity platform overview [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
+
+I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens/) and [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens-device-code-flow/). There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here https://oauth.net/2/grant-types/authorization-code/ if you want to understand the details of the flow.
 
 > In brief, the scenario I am talking about is when an end user provides permissions for an app to access services that the user has access to on their behalf. The end user does this by authenticating and consenting to a set of permissions known as scopes. The consented scopes are encapsulated within the access token itself.
 
@@ -18,9 +36,9 @@ So, it seems pretty simple so far so why the need for this post? These are the c
 
 I won't focus on some of the other topics like IL2CPP stripping code from .NET libraries as I have covered that in a previous post [IL2CPP + HoloLens](http://peted.azurewebsites.net/il2cpp-hololens/), so you may want to be on the lookout for those kind of issues. I will leave you with a code repository that you can borrow code from to set up the particular scenario that you are interested in. The code and the rest of this post will be concerned with the different ways that access and id tokens can be retrieved, back-end configuration and an illustration of how you might get an AAD token for some of the new Mixed Reality services such as Azure Spatial Anchors and Azure Remote Rendering.
 
-<more stuff here>
-
 ## Sample Walkthrough
+
+> This just describes some aspects of how I created the demo application. If this isn't of interest just skip these sections as I will make my way towards the various frameworks and APIs used.
 
 For the sample I have used Unity 2019.4.0f1.
 First add Nuget 2.0.0 to your project.
@@ -125,7 +143,11 @@ With the switch toggled to the 'off' position you go through a flow that acquire
 
 ### Windows Account Provider
 
+I have experimented here as I found a scenario where I wanted to switch between different known accounts but I couldn't get the account settings pane to show so haven't completed this part but may return to it later.
+
 ### Microsoft Authentication Library
+
+Aside from the built-in APIs this would be the next favourite method of gaining an AAD token and that would be the suggestion of the Microsoft Identity team. Plus it supports device code flow which is sometimes handy depending on your scenario. Also it allows you to continue to develop your app against real APIs from the Unity editor.
 
 ### Active Directory Authentication Library
 
@@ -135,9 +157,15 @@ When we first try to use ADAL we get hit with the following error:
 
 This looks suspiciously like an IL2CPP code stripping issue. This occurs as byproduct of the optimisation used when the .NET binary is converted to C++. Unused code is stripped out in that process and sometimes code that isn't detected as reachable gets removed. Look out for code that is only referenced in a reflection scenario. See [here](http://peted.azurewebsites.net/il2cpp-hololens/) for further details. The short answer is to add a link.xml stating which types to not strip.
 
-link to the link.xml
+> You can see the link.xml for the app [here](https://github.com/peted70/aad-hololens/blob/master/Assets/link.xml)
 
-### Windows Authentication Broker
+Although ADAL is not the recommended way forward for legacy and cross-platform reasons you may need to use it and so I have included it in my sample.
+
+> If you are using ADAL but would like to migrate to MSAL then the differences are distilled in [this](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Adal-to-Msal) guide.
+
+### Web Authentication Broker
+
+[WebAuthenticationBroker](https://docs.microsoft.com/en-us/windows/uwp/security/web-authentication-broker) is a broker component that manages the http redirects retrieving the resulting AAD token that would usually be managed by a browser for a web application. As a result there is a bit more work to do to construct the original url than the other libraries.
 
 ## Settings
 
@@ -161,6 +189,12 @@ Of most interest to me being iris login with multiple accounts.
 
 > Just getting an OAuth token and displaying it isn't too interesting as really the aim in a real app would most-likely be to access a custom API or some other Azure resource. So, to show that things are working as expected we'll take the AAD token and exchange it for and access token for Azure Mixed Reality services. We'll use that access token to make a call to the Azure Remote Rendering Service to enumerate rendering sessions just to check that the call succeeds. This access token could be used to access any MR services, e.g. Azure Spatial Anchors, that the logged in user has access to. We'll look into how to configure the application and also provide access to a particular user next.
 
+### Test
+
+I added a button to run the test which calls the ARR service and shows the results of whether the call succeeded or not.
+
+> After getting an AAD token you can press the button which will exchange the AAD token for an MR access token using the Mixed Reality Secure Token Service (STS). This access token will subsequently be in a call to the ARR service. The test UI will show green if the http status is successful and red otherwise.
+
 ### Register the App
 
 I've covered this a few times on my blog so will just include the basic steps here:
@@ -176,6 +210,8 @@ Select 'New Registration' and just name it without worrying about the other sett
 The easiest way to discover the redirect URI for the sample app is to run it and the app will write the uri to th unity log.
 
 > Note, that the running instance of your app needs to be terminated before the log is flushed. You can terminate the app and download the unity log using the [HoloLens device portal](https://docs.microsoft.com/en-us/windows/mixed-reality/using-the-windows-device-portal).
+>
+> ![Unity Log](./images/unity-log.png)
 
 This code:
 
@@ -213,7 +249,7 @@ Selecting that and choosing 'Delegated Permission'...
 
 ![Add Permissions](./images/add-permission.png)
 
-and choose **mixedreality.signin** permission. 
+and choose **mixedreality.signin** permission.
 
 > This will also be the scope that you will request for your AAD token.
 
@@ -222,3 +258,9 @@ And finally I granted access to my tenant:
 ![Grant Admin](./images/grant-admin.png)
 
 <Iris Login video>
+
+## Diagnosing Token Issues
+
+If at some point you get stuck on some AAD error then having an understanding of the OAuth flow that you are using is vital and you can also use https://jwt.ms/ to paste in a token and have a look at it's contents/claims to ensure they match with what you are expecting.
+
+![JWT](./images/jwt.png)
