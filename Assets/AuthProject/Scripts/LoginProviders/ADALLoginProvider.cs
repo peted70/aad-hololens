@@ -123,7 +123,7 @@ public class ADALLoginProvider : BaseLoginProvider
 
             accessToken = AADToken = authenticationResult.AccessToken;
             Username = authenticationResult.UserInfo.DisplayableId;
-            Logger.Log($"Access Token: {accessToken}");
+            Logger.Log($"Access Token: {accessToken}", false);
         }
 
         return new AADToken(accessToken);

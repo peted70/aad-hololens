@@ -12,8 +12,8 @@
         context.ClearLog();
     }
 
-    public void Log(string msg)
+    public void Log(string msg, bool toConsole = true)
     {
-        context.QueueLog(msg);
+        context.QueueLog(msg, toConsole);
     }
 }

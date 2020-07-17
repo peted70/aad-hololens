@@ -2,5 +2,5 @@
 {
     void ClearLog();
 
-    void QueueLog(string msg);
+    void QueueLog(string msg, bool toConsole);
 }

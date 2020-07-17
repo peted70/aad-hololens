@@ -29,7 +29,7 @@ public class WABLoginProvider : BaseLoginProvider
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         string accessToken = string.Empty;
-        Logger.Log("Loggin in with WebAuthenticationBroker...");
+        Logger.Log("Logging in with WebAuthenticationBroker...");
 
 #if ENABLE_WINMD_SUPPORT
         var redirectUri = WebAuthenticationBroker.GetCurrentApplicationCallbackUri().AbsoluteUri;
@@ -37,7 +37,6 @@ public class WABLoginProvider : BaseLoginProvider
         var state = Guid.NewGuid().ToString();
         var nonce = Guid.NewGuid().ToString();
 
-        //string url = "https://login.microsoftonline.com/common";
         string url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 
         var uri = new Uri($"{url}?" +
@@ -96,11 +95,10 @@ public class WABLoginProvider : BaseLoginProvider
         catch (Exception e)
         {
             Logger.Log($"Unhandled {e} - {e.Message}");
-            Logger.Log($" >> Have you enabled the Internet Client capability?");
-            Logger.Log($" >> If {url} is directly accessible via a Local Network, try enabling 'Use Corporate Network'.");
         }
 #endif
 
+        AADToken = accessToken;
         return new AADToken(accessToken);
     }
 

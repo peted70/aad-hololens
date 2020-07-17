@@ -37,7 +37,7 @@ public class WAMLoginProvider : BaseLoginProvider
     public async override Task<IToken> LoginAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
-        Logger.Log("Loggin in with WebAuthenticationCoreManager...");
+        Logger.Log("Logging in with WebAuthenticationCoreManager...");
 
         string accessToken = string.Empty;
 #if ENABLE_WINMD_SUPPORT
@@ -99,9 +99,6 @@ public class WAMLoginProvider : BaseLoginProvider
 
         string resource = "https://sts.mixedreality.azure.com";
 
-        //var scope = "https://management.azure.com/user_impersonation";
-        //WebTokenRequest wtr = new WebTokenRequest(wap, scope, "3c663152-fdf9-4033-963f-c398c21212d9");
-        //WebTokenRequest wtr = new WebTokenRequest(wap, scope, "5c8c830a-4cf8-470e-ba0d-6d815feba800");
         //https://sts.mixedreality.azure.com/mixedreality.signin 
 
         WebTokenRequest wtr = new WebTokenRequest(wap, "https://sts.mixedreality.azure.com//.default", ClientId);
@@ -188,7 +185,7 @@ public class WAMLoginProvider : BaseLoginProvider
                 var br = new BinaryReader(stream);
                 UserPicture = br.ReadBytes((int)stream.Length);
 
-                Logger.Log("Access Token: " + accessToken);
+                Logger.Log("Access Token: " + accessToken, false);
             }
         }
 
@@ -214,7 +211,7 @@ public class WAMLoginProvider : BaseLoginProvider
                 }
             }
 
-            Logger.Log("Access Token: " + accessToken);
+            Logger.Log("Access Token: " + accessToken, false);
         }
 
         if (account != null && !string.IsNullOrEmpty(account.Id))

@@ -59,20 +59,11 @@ public class MSALLoginProvider : BaseLoginProvider
                     Logger.Log($"Account found id = {account.HomeAccountId}");
             }
 
-            //string[] scopes = new string[] { "user.read" };//, 
-
             //string[] scopes = new string[] { "https://sts.mixedreality.azure.com/mixedreality.signin" };
             string[] scopes = new string[] { "https://sts.mixedreality.azure.com//.default" };
             
             Microsoft.Identity.Client.AuthenticationResult authResult = null;
 
-            //Declaring the Public Client properties
-            //string tenantID = {Your tenant ID or .onmicrosoft.com domain};
-
-            //For this example, the API to be accessed is EWS
-            //string[] scopes = new string[] { "https://outlook.office365.com/.default" };
-
-            //string redirectURI = {Your app registration's redirectURI};
             try
             {
 #if LATEST_MSAL
@@ -125,7 +116,9 @@ public class MSALLoginProvider : BaseLoginProvider
                 return null;
 
             Username = authResult.Account.Username;
-            Logger.Log("Access Token: " + authResult.AccessToken);
+
+            Logger.Log("Acquired Access Token");
+            Logger.Log("Access Token: " + authResult.AccessToken, false);
 
             return authResult;
         });
@@ -154,6 +147,6 @@ public class MSALLoginProvider : BaseLoginProvider
 
     private void LoggingCallback(LogLevel level, string message, bool containsPii)
     {
-        Logger.Log(message);
+        Logger.Log(message, false);
     }
 }

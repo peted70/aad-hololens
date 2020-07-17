@@ -19,6 +19,9 @@ public class AuthManager : MonoBehaviour, ILogContext
     [Tooltip("Image which will be populated with the user's image if one is available")]
     public RawImage UserImage;
 
+    [Tooltip("Default image to use if there is no user profile image.")]
+    public Texture DefaultImage;
+
     [Tooltip("Scrollview for the debug console")]
     public GameObject ScrollView;
 
@@ -80,8 +83,8 @@ public class AuthManager : MonoBehaviour, ILogContext
 
     public void HandleLogin()
     {
-        //ClearLog();
-        Log("Logging in with current Login Provider...");
+        ClearLog();
+        Logger.Log("Logging in with current Login Provider...");
         StartLogin(CurrentLoginProvider.LoginAsync).ContinueWith(t =>
         {
             ProcessResult(t);
@@ -90,7 +93,8 @@ public class AuthManager : MonoBehaviour, ILogContext
 
     public void HandleLogout()
     {
-        Log("Logging out with current Login Provider...");
+        Logger.Log("Logging out with current Login Provider...");
+        ClearLog();
         CurrentLoginProvider.SignOutAsync().ContinueWith(t =>
         {
             ProcessResult(t);
@@ -99,7 +103,7 @@ public class AuthManager : MonoBehaviour, ILogContext
 
     public void HandleTest()
     {
-        Log("Testing token...");
+        Logger.Log("Testing token...");
         TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.Progress);
         TestTokenAsync(CurrentLoginProvider.AADToken, Settings.ARRAccountId).ContinueWith(t =>
         {
@@ -110,7 +114,7 @@ public class AuthManager : MonoBehaviour, ILogContext
                     TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.Fail);
                 });
 
-                Log(t.Exception.Message);
+                Logger.Log(t.Exception.Message);
             }
             else
             {
@@ -144,13 +148,13 @@ public class AuthManager : MonoBehaviour, ILogContext
         if (string.IsNullOrEmpty(token))
         {
             string msg = "No valid token provided - can't test";
-            Log(msg);
+            Logger.Log(msg);
             throw new ArgumentException(msg, "token");
         }
         if (string.IsNullOrEmpty(arrAcountId))
         {
             string msg = "No Azure Remote Rendering Acount Id provided - can't test";
-            Log(msg);
+            Logger.Log(msg);
             throw new ArgumentException(msg, "arrAcountId");
         }
 
@@ -163,7 +167,7 @@ public class AuthManager : MonoBehaviour, ILogContext
             .ConfigureAwait(false);
 
         var content = await resp.Content.ReadAsStringAsync();
-        Logger.Log(content);
+        Logger.Log(content, false);
         resp.EnsureSuccessStatusCode();
 
         var tkn = (StsResponse)JsonUtility.FromJson(content, typeof(StsResponse));
@@ -175,7 +179,7 @@ public class AuthManager : MonoBehaviour, ILogContext
         else
         {
             Logger.Log("Successfully retrieved access token from Mixed Reality STS");
-            Logger.Log(tkn.AccessToken);
+            Logger.Log(tkn.AccessToken, false);
         }
 
         http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tkn.AccessToken);
@@ -209,7 +213,8 @@ public class AuthManager : MonoBehaviour, ILogContext
         TestStatus.SetStatus(ObjectSwitcher.ObjectSwitcherStatus.None);
 
         // Synchronise the UI..
-        DebugText.text = CurrentLoginProvider.LogContent;
+        UpdateDebugTextFromProvider();
+
         UserText.text = CurrentLoginProvider.Username;
         StatusText.text = CurrentLoginProvider.IsSignedIn ? "Signed In" : "Not Signed In";
 
@@ -219,6 +224,11 @@ public class AuthManager : MonoBehaviour, ILogContext
             tex.LoadImage(CurrentLoginProvider.UserPicture);
             tex.Apply();
             UserImage.texture = tex;
+        }
+        else
+        {
+            // apply default image...
+            UserImage.texture = DefaultImage;
         }
     }
 
@@ -230,7 +240,7 @@ public class AuthManager : MonoBehaviour, ILogContext
         resp.EnsureSuccessStatusCode();
 
         var str = await resp.Content.ReadAsStringAsync();
-        Log(str);
+        Logger.Log(str);
     }
 
     public async Task<IToken> StartLogin(Func<Task<IToken>> LoginProvider)
@@ -245,12 +255,12 @@ public class AuthManager : MonoBehaviour, ILogContext
         {
             foreach (var exc in ex.InnerExceptions)
             {
-                Log(exc.Message);
+                Logger.Log(exc.Message);
             }
         }
         catch (Exception ex)
         {
-            Log(ex.Message);
+            Logger.Log(ex.Message);
         }
         finally
         {
@@ -259,27 +269,36 @@ public class AuthManager : MonoBehaviour, ILogContext
         return accessToken;
     }
 
-    private ScrollRect _scrollRect;
-
-    void Log(string text)
+    void UpdateDebugTextFromProvider()
     {
-        DebugText.text += "\n" + text;
-        CurrentLoginProvider.Log("\n" + text);
-        Debug.Log(text);
+        DebugText.text = CurrentLoginProvider.LogContent;
         Canvas.ForceUpdateCanvases();
         _scrollRect.verticalNormalizedPosition = 0.0f;
     }
 
-    public void ClearLog()
+    private ScrollRect _scrollRect;
+
+    void Log(string text, bool toConsole = true)
     {
-        DebugText.text = string.Empty;
+        if (toConsole)
+        {
+            CurrentLoginProvider.Log(text);
+            UpdateDebugTextFromProvider();
+        }
+        Debug.Log(text);
     }
 
-    public void QueueLog(string log)
+    public void ClearLog()
+    {
+        CurrentLoginProvider.ClearLog();
+        UpdateDebugTextFromProvider();
+    }
+
+    public void QueueLog(string log, bool toConsole)
     {
         Dispatcher.Enqueue(() =>
         {
-            Log(log);
+            Log(log, toConsole);
         });
     }
 }

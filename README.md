@@ -1,6 +1,6 @@
 # AAD Login on HoloLens 2
 
-I have previously written a little about the topic of retrieving Azure Active Directory (AAD) OAuth2 identity and access tokens on a HoloLens device. I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those <here> and <here>. There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here https://oauth.net/2/grant-types/authorization-code/ if you want to understand the details of the flow.
+I have previously written a little about the topic of retrieving Azure Active Directory (AAD) OAuth2 identity and access tokens on a HoloLens device. I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens/) and [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens-device-code-flow/). There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here https://oauth.net/2/grant-types/authorization-code/ if you want to understand the details of the flow.
 
 > In brief, the scenario I am talking about is when an end user provides permissions for an app to access services that the user has access to on their behalf. The end user does this by authenticating and consenting to a set of permissions known as scopes. The consented scopes are encapsulated within the access token itself.
 
@@ -20,7 +20,7 @@ I won't focus on some of the other topics like IL2CPP stripping code from .NET l
 
 <more stuff here>
 
-## Walkthrough
+## Sample Walkthrough
 
 For the sample I have used Unity 2019.4.0f1.
 First add Nuget 2.0.0 to your project.
@@ -113,6 +113,16 @@ We can use this UI to plug in different auth providers and switch them at runtim
 
 ### Web Authentication Manager
 
+Here we can access the APIs which enable you to retrieve the current user's AAD token and also to invoke a biometric check against the current physical user. this would guard against another user picking up a device and accessing sensitive information. You can switch the iris check on/off in the sample with a toggle switch.
+
+![Iris Login Toggle](./images/use-iris-login.png)
+
+When this is selected and you sign in your iris will be re-scanned and you will see this dialog.
+
+![Iris Check](./images/iris-check.png)
+
+With the switch toggled to the 'off' position you go through a flow that acquires the currently logged in user's AAD token so you won't get a prompt to login. This way you can share a HL2 device amongst multiple people and ensure that if one user forgets to sign out they will not leak sensitive data. More information about setting up a device for multiple users can be found [here](https://docs.microsoft.com/en-us/hololens/hololens-multiple-users).
+
 ### Windows Account Provider
 
 ### Microsoft Authentication Library
@@ -182,3 +192,33 @@ will log out a redirect URI for a UWP app.
 string URI = string.Format("ms-app://{0}", WebAuthenticationBroker.GetCurrentApplicationCallbackUri().Host.ToUpper());
 Logger.Log("Redirect URI: " + URI);
 ```
+
+To configure access for a user navigate to the Mixed Reality service you want to grant access to
+
+![ARR](./images/arr-settings.png)
+
+More info [here](https://docs.microsoft.com/en-us/azure/remote-rendering/how-tos/create-an-account) along with instructions on how to set up an Azure Remote Rendering account. I've set up my test user as an owner.
+
+![ARR RBC](./images/arr-access.png)
+
+Along with this I also need to give my app the necessary API permissions to access the Mixed Reality services. I can navigate to my app registration page on the Azure portal.
+
+![API Permissions](./images/api-permissions.png)
+
+and I can request a permission by searching for Microsoft Mixed...
+
+![Request Permissions](./images/request-permission.png)
+
+Selecting that and choosing 'Delegated Permission'...
+
+![Add Permissions](./images/add-permission.png)
+
+and choose **mixedreality.signin** permission. 
+
+> This will also be the scope that you will request for your AAD token.
+
+And finally I granted access to my tenant:
+
+![Grant Admin](./images/grant-admin.png)
+
+<Iris Login video>
