@@ -4,9 +4,9 @@
 
 Here's a short video of the sample app that goes with this post:
 
-<figure class="video_container">
-<iframe src="https://www.youtube.com/embed/7yz7hTNMxBY"  frameborder="0" allowfullscreen="true"></iframe>
-</figure>
+[![Demo Video](https://img.youtube.com/vi/7yz7hTNMxBY/0.jpg)](https://www.youtube.com/watch?v=7yz7hTNMxBY)
+
+The code is all found on Github [here](https://github.com/peted70/aad-hololens)
 
 One of the coolest aspects of HoloLens2 is the iris login as it removes the need for typing on a virtual keyboard. So a cool feature which avoids the need for the coolest feature! Although hand-tracked typing is arguably the coolest feature it can become tiring when needed over and over...
 
@@ -24,7 +24,7 @@ I have previously written a little about the topic of retrieving Azure Active Di
 
 > If this topic is new to you I would suggest reading through the identity platform overview [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
 
-I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens/) and [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens-device-code-flow/). There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here https://oauth.net/2/grant-types/authorization-code/ if you want to understand the details of the flow.
+I focused on specific topics such as how to retrieve a token to access the Microsoft Graph API using Microsoft Authentication Library for .NET (MSAL) using the OAuth delegated flow and device code flows. You can see code and read about those [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens/) and [here](http://peted.azurewebsites.net/microsoft-graph-auth-on-hololens-device-code-flow/). There are some complications and potential blockers for those trying to set this up for the first time and, in my experience there is quite a lot of misunderstanding around the topics of auth in general. In my role at Microsoft I have worked through some of these issues for customers and I get asked a lot about how to set up auth correctly to access Graph APIs, your own APIs and Mixed Reality services. Often samples for services will skirt the issue by using secrets embedded into a client side application which you can configure with your own set of secrets for your service instances. This is fine for a demo and a first-try of the services in question but as soon as you turn your thoughts to developing production code falls down immediately and the first task you will be faced with is how to secure access to your services. I am going to cover the OAuth 2.0 Authorization Code Grant which you can read about here [OAuth Grant Types](https://oauth.net/2/grant-types/authorization-code/) if you want to understand the details of the flow.
 
 > In brief, the scenario I am talking about is when an end user provides permissions for an app to access services that the user has access to on their behalf. The end user does this by authenticating and consenting to a set of permissions known as scopes. The consented scopes are encapsulated within the access token itself.
 
@@ -42,7 +42,7 @@ So, it seems pretty simple so far so why the need for this post? These are the c
 
 I won't focus on some of the other topics like IL2CPP stripping code from .NET libraries as I have covered that in a previous post [IL2CPP + HoloLens](http://peted.azurewebsites.net/il2cpp-hololens/), so you may want to be on the lookout for those kind of issues. I will leave you with a code repository that you can borrow code from to set up the particular scenario that you are interested in. The code and the rest of this post will be concerned with the different ways that access and id tokens can be retrieved, back-end configuration and an illustration of how you might get an AAD token for some of the new Mixed Reality services such as Azure Spatial Anchors and Azure Remote Rendering.
 
-##  Sample Walkthrough
+## Sample Walkthrough
 
 > This just describes some aspects of how I created the demo application. If this isn't of interest just skip these sections as I will make my way towards the various frameworks and APIs used.
 
@@ -59,7 +59,7 @@ Set app package name and capabilities to allow debugging on device via the unity
 
 This also involves removing any legacy XR packages using the Unity package manager, if necessary..
 
-add MRTK to the scene 
+add MRTK to the scene
 
 ![Add MRTK](./images/add-to-scene.png)*Add MRTK*
 
@@ -127,9 +127,7 @@ The content pages are arbitrary game objects and are given an ID by adding the P
 
 The video below shows the tabbed dialog being used to switch the content pages in the Unity Game preview.
 
-<figure class="video_container">
-<iframe src="https://www.youtube.com/embed/cOxb61Tk1hM"  frameborder="0" allowfullscreen="true"></iframe>
-</figure>
+[![Demo MRTK Video](https://img.youtube.com/vi/cOxb61Tk1hM/0.jpg)](https://www.youtube.com/watch?v=cOxb61Tk1hM)
 
 We can use this UI to plug in different auth providers and switch them at runtime.
 
@@ -265,6 +263,6 @@ And finally I granted access to my tenant:
 
 ## Diagnosing Token Issues
 
-If at some point you get stuck on some AAD error then having an understanding of the OAuth flow that you are using is vital and you can also use https://jwt.ms/ to paste in a token and have a look at it's contents/claims to ensure they match with what you are expecting.
+If at some point you get stuck on some AAD error then having an understanding of the OAuth flow that you are using is vital and you can also use [https://jwt.ms/](https://jwt.ms/) to paste in a token and have a look at it's contents/claims to ensure they match with what you are expecting.
 
 ![JWT](./images/jwt.png)
